@@ -12,7 +12,7 @@ class MessageItem:
     token_count: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        result = dict[str, Any] = {"role": self.role}
+        result: dict[str, Any] = {"role": self.role}
 
         if self.content:
             result["content"] = self.content
