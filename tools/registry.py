@@ -3,7 +3,7 @@ from typing import Any
 from tools.base import Tool, ToolInvocation, ToolResult
 import logging
 
-from tools.builtin import ReadFileTool, get_all_builtin_tools
+from tools.builtin import get_all_builtin_tools
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,8 @@ class ToolRegistry:
         self,
         name: str,
         params: dict[str, Any],
-        cwd: Path | None,
-    ):
+        cwd: Path,
+    ) -> ToolResult:
         tool = self.get(name)
         if tool is None:
             return ToolResult.error_result(
@@ -67,12 +67,14 @@ class ToolRegistry:
             cwd=cwd,
         )
         try:
-            await tool.execute(invocation)
+            result = await tool.execute(invocation)
         except Exception as e:
             logger.exception(f"Tool {name} raised unexpected error")
-            return ToolResult.error_result(
+            result = ToolResult.error_result(
                 f"Internal error: {str(e)}", metadata={"tool_name": name}
             )
+
+        return result
 
 
 def create_default_registry() -> ToolRegistry:
