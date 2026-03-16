@@ -24,6 +24,25 @@ class ToolResult:
     output: str
     error: str
     metadata: dict[str, Any] = field(default_factory=dict)
+    truncated: bool = False
+
+    @classmethod
+    def error_result(cls, error: str, output: str = "", **kwargs: Any):
+        return cls(
+            success=False,
+            output=output,
+            error=error,
+            **kwargs,
+        )
+        
+    @classmethod
+    def success_result(cls, output: str, **kwargs: Any):
+        return cls(
+            success=True,
+            output=output,
+            error=None,
+            **kwargs,
+        )
 
 
 @dataclass
@@ -90,7 +109,7 @@ class Tool(abc.ABC):
             params=invocation.params,
             description=f"Execute {self.name}",
         )
-        
+
     def to_openai_schema(self) -> dict[str, Any]:
         schema = self.schema
         if isinstance(schema, type) and issubclass(schema, BaseModel):
@@ -113,7 +132,7 @@ class Tool(abc.ABC):
                 result["parameters"] = schema["parameters"]
             else:
                 result["parameters"] = schema
-        
+
             return result
-        
+
         raise ValueError(f"Invalid schema type for tool {self.name}: {type(schema)}")
