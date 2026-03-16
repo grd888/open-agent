@@ -84,7 +84,6 @@ class Tool(abc.ABC):
         if isinstance(schema, type) and issubclass(schema, BaseModel):
             try:
                 schema(**params)
-                return []
             except ValidationError as e:
                 errors = []
                 for error in e.errors():

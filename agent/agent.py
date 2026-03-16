@@ -71,7 +71,7 @@ class Agent:
             result = await self.tool_registry.invoke(
                 tool_call.name,
                 tool_call.arguments,
-                Path.cwd,
+                Path.cwd(),
             )
             
             yield AgentEvent.tool_call_complete(
@@ -89,7 +89,7 @@ class Agent:
             )
             
         for tool_result in tool_call_results:
-            self.context_manager.add_tool_result_message(
+            self.context_manager.add_tool_message(
                 tool_result.tool_call_id,
                 tool_result.content,
             )
