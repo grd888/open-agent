@@ -1,7 +1,8 @@
+from pathlib import Path
 from typing import Any
 import click
 from agent.agent import Agent
-from agent.events import  AgentEventType
+from agent.events import AgentEventType
 from client.llm_client import LLMClient
 import asyncio
 import sys
@@ -9,6 +10,8 @@ import sys
 from ui.tui import TUI, get_console
 
 console = get_console()
+
+
 class CLI:
     def __init__(self):
         self.agent: Agent | None = None
@@ -19,6 +22,32 @@ class CLI:
             self.agent = agent
             return await self._process_message(message)
 
+    async def run_interactive(self) -> str | None:
+        self.tui.print_welcome(
+            "AI Agent",
+            lines=[
+                "model: mistralai/devstral-2512\n"
+                f"cwd: {Path.cwd()}\n"
+                "commands: /help /config /approval /model /exit"
+            ],
+        )
+
+        async with Agent() as agent:
+            self.agent = agent
+
+            while True:
+                try:
+                    user_input = console.input("\n[user]>[/user] ").strip()
+                    if not user_input:
+                        continue
+                    await self._process_message(user_input)
+                except KeyboardInterrupt:
+                    console.print("\n[dim]Use /exit to quit[/dim]")
+                except EOFError:
+                    break
+
+        console.print("\n[dim]Goodbye![/dim]")
+
     def _get_tool_kind(self, tool_name: str) -> str | None:
         tool_kind = None
         tool = self.agent.tool_registry.get(tool_name)
@@ -27,14 +56,14 @@ class CLI:
         else:
             tool_kind = tool.kind.value
         return tool_kind
-        
+
     async def _process_message(self, message: str) -> str | None:
         if not self.agent:
             return None
-        
+
         assistant_streaming = False
         final_response: str | None = None
-        
+
         async for event in self.agent.run(message):
             if event.type == AgentEventType.TEXT_DELTA:
                 content = event.data.get("content", "")
@@ -72,10 +101,8 @@ class CLI:
                     event.data.get("metadata"),
                     event.data.get("truncated", False),
                 )
-                
-                    
+
         return final_response
-        
 
 
 async def run(messages: dict[str, Any]):
@@ -96,11 +123,11 @@ def main(
         result = asyncio.run(cli.run_single(prompt))
         if result is None:
             sys.exit(1)
-        
+    else:
+        asyncio.run(cli.run_interactive())
 
 
 main()
 
 
 # Last timestamp 6:13:13
-
