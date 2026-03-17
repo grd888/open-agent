@@ -49,13 +49,10 @@ class CLI:
         console.print("\n[dim]Goodbye![/dim]")
 
     def _get_tool_kind(self, tool_name: str) -> str | None:
-        tool_kind = None
+        if not self.agent or not self.agent.tool_registry:
+            return None
         tool = self.agent.tool_registry.get(tool_name)
-        if not tool:
-            tool_kind = None
-        else:
-            tool_kind = tool.kind.value
-        return tool_kind
+        return tool.kind.value if tool else None
 
     async def _process_message(self, message: str) -> str | None:
         if not self.agent:
