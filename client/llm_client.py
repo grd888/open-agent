@@ -156,6 +156,8 @@ class LLMClient:
                             "name": "",
                             "arguments": "",
                         }
+                    elif tool_call_delta.id:
+                        tool_calls[idx]["id"] = tool_call_delta.id
 
                     if tool_call_delta.function:
                         if tool_call_delta.function.name:

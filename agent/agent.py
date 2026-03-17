@@ -54,32 +54,47 @@ class Agent:
 
         self.context_manager.add_assistant_message(
             response_text or None,
+            (
+                [
+                    {
+                        "id": tc.call_id,
+                        "type": "function",
+                        "function": {
+                            "name": tc.name,
+                            "arguments": str(tc.arguments),
+                        },
+                    }
+                    for tc in tool_calls
+                ]
+                if tool_calls
+                else None
+            ),
         )
 
         if response_text:
             yield AgentEvent.text_complete(response_text)
 
         tool_call_results: list[ToolResultMessage] = []
-        
+
         for tool_call in tool_calls:
             yield AgentEvent.tool_call_start(
                 tool_call.call_id,
                 tool_call.name,
                 tool_call.arguments,
             )
-            
+
             result = await self.tool_registry.invoke(
                 tool_call.name,
                 tool_call.arguments,
                 Path.cwd(),
             )
-            
+
             yield AgentEvent.tool_call_complete(
                 tool_call.call_id,
                 tool_call.name,
                 result,
             )
-            
+
             tool_call_results.append(
                 ToolResultMessage(
                     tool_call_id=tool_call.call_id,
@@ -87,7 +102,7 @@ class Agent:
                     is_error=not result.success,
                 )
             )
-            
+
         for tool_result in tool_call_results:
             self.context_manager.add_tool_message(
                 tool_result.tool_call_id,
