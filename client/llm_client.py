@@ -69,7 +69,7 @@ class LLMClient:
         # anthropic/claude-sonnet-4.6
         # anthropic/claude-haiku-4.5
         kwargs = {
-            "model": "mistralai/devstral-2512",
+            "model": self.config.model_name,
             "messages": messages,
             "stream": stream,
         }

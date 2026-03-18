@@ -38,7 +38,7 @@ def _get_project_config(cwd: Path) -> Path | None:
 
     if agent_dir.is_dir():
         config_file = agent_dir / CONFIG_FILE_NAME
-        if config_file.is_file()():
+        if config_file.is_file():
             return config_file
 
     return None

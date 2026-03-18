@@ -18,7 +18,7 @@ class CLI:
     def __init__(self, config: Config):
         self.agent: Agent | None = None
         self.config = config
-        self.tui = TUI(console)
+        self.tui = TUI(config, console)
 
     async def run_single(self, message: str) -> str | None:
         async with Agent(self.config) as agent:
@@ -29,8 +29,8 @@ class CLI:
         self.tui.print_welcome(
             "AI Agent",
             lines=[
-                "model: mistralai/devstral-2512\n"
-                f"cwd: {Path.cwd()}\n"
+                f"model: {self.config.model_name}\n"
+                f"cwd: {self.config.cwd}\n"
                 "commands: /help /config /approval /model /exit"
             ],
         )
@@ -127,6 +127,7 @@ def main(
         config = load_config(cwd=cwd)
     except Exception as e:
         console.print(f"[error]Configuration Error: {e}[/error]")
+        sys.exit(1)
 
     errors = config.validate()
     if errors:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 from pathlib import Path
 from typing import AsyncGenerator
 from agent.events import AgentEvent, AgentEventType
@@ -13,7 +14,7 @@ class Agent:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.client = LLMClient(config=config)
-        self.context_manager = ContextManager()
+        self.context_manager = ContextManager(config=config)
         self.tool_registry = create_default_registry()
 
     async def run(self, message: str):
@@ -63,7 +64,7 @@ class Agent:
                         "type": "function",
                         "function": {
                             "name": tc.name,
-                            "arguments": str(tc.arguments),
+                            "arguments": json.dumps(tc.arguments),
                         },
                     }
                     for tc in tool_calls
@@ -88,7 +89,7 @@ class Agent:
             result = await self.tool_registry.invoke(
                 tool_call.name,
                 tool_call.arguments,
-                Path.cwd(),
+                self.config.cwd,
             )
 
             yield AgentEvent.tool_call_complete(

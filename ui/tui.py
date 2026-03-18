@@ -10,7 +10,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
-
+from config.config import Config
 from utils.paths import display_path_rel_to_cwd, resolve_path
 from utils.text import truncate_text
 
@@ -55,12 +55,13 @@ def get_console() -> Console:
 class TUI:
     def __init__(
         self,
+        config: Config,
         console: Console | None = None,
     ) -> None:
         self.console = console or get_console()
         self._assistant_stream_open = False
         self._tool_args_by_call_id: dict[str, dict[str, Any]] = {}
-        self.cwd = Path.cwd()
+        self.config = config
 
     def begin_assistant(self) -> None:
         self.console.print()
@@ -121,8 +122,8 @@ class TUI:
         display_args = dict(arguments)
         for key in ("path", "cwd"):
             val = display_args.get(key)
-            if isinstance(val, str) and self.cwd:
-                display_args[key] = str(display_path_rel_to_cwd(val, self.cwd))
+            if isinstance(val, str) and self.config.cwd:
+                display_args[key] = str(display_path_rel_to_cwd(val, self.config.cwd))
 
         panel = Panel(
             self._render_args_table(name, display_args)
@@ -243,7 +244,7 @@ class TUI:
                 total_lines = metadata.get("total_lines")
                 pl = self._guess_language(primary_path)
 
-                header_parts = [display_path_rel_to_cwd(primary_path, self.cwd)]
+                header_parts = [display_path_rel_to_cwd(primary_path, self.config.cwd)]
                 header_parts.append(" ● ")
 
                 if shown_start and shown_end and total_lines:
